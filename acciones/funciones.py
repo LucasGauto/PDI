@@ -2,6 +2,51 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+def ecualizacionLocal(window_size = 25):
+    '''
+    Toma la ruta de una imagen y devuelve la misma imagen pero ecualizada localmente.
+    '''
+    #Primero realizamos una carga y visualización de la imagen
+    imagen = cv2.imread('Imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
+    
+    #Funcion para ecualizar localmente
+    def local_histogram_equalization(img, window_size):
+        '''
+        Calcula la ecualizacion local de histograma
+        '''
+        h, w = img.shape #Toma el alto y ancho de la imagen
+        img_equalized = np.zeros((h, w), dtype=np.uint8) #Se crea una imagen base en blanco
+        
+        #Se toma la mitad de la imagen para calcular el desplazamiento
+        #de la ventana desde el centro, donde el centro es i,j
+        half_size = window_size // 2
+
+        for i in range(h):
+            for j in range(w):
+                i_min = max(0, i - half_size) #Para que no tome una fila menor a 0
+                i_max = min(h, i + half_size + 1) #Lo mismo pero mayor a 255
+                j_min = max(0, j - half_size) #Lo mismo para las columnas
+                j_max = min(w, j + half_size + 1) #etc
+
+                # Obtener la subimagen dentro de la ventana
+                window = img[i_min:i_max, j_min:j_max]
+
+                # Ecualizar el histograma localmente
+                window_equalized = cv2.equalizeHist(window)
+
+                # Asignar el valor ecualizado al píxel central de la ventana en la imagen resultante
+                img_equalized[i, j] = window_equalized[i - i_min, j - j_min]
+
+        return img_equalized
+
+    #window_size = 25
+
+    imagen_ecualizada_localmente = local_histogram_equalization(imagen, window_size)
+
+    #plt.imshow(imagen_ecualizada_localmente, cmap = 'gray')
+    #plt.show(block=False)
+    return imagen_ecualizada_localmente
+
 def adecuar(NombreImagen:str):
     '''
     Toma la imagen leida y extrae solamente la parte del examen
@@ -169,8 +214,8 @@ def corregir(examen):
 
     for i in range(1,25+1):
         if respuestasAlumno[i] == respuestasCorrectas[i]:
-            correccion[f'Pregunta {i}:'] = 'OK'
+            correccion[f'Pregunta {i}'] = 'OK'
         else:
-            correccion[f'Pregunta {i}:'] = 'MAL'
+            correccion[f'Pregunta {i}'] = 'MAL'
 
     return correccion

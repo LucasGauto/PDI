@@ -43,7 +43,7 @@ cv2.destroyAllWindows()
 '''
 
 #plt.style.use('default')
-plt.style.use('dark_background')
+#plt.style.use('dark_background')
 
 #Primero realizamos una carga y visualización de la imagen
 imagen = cv2.imread('Imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
@@ -84,13 +84,14 @@ plt.title('Histograma Ecualizado')
 
 plt.show()
 
+
 #Dimensiones de la imagen
-imagen[:20].shape
+#imagen[:20].shape
 
 #Ecualizacion de fragmento de la imagen
 fragmento = cv2.equalizeHist(imagen[:30,:30])
-plt.imshow(fragmento, cmap='gray')
-plt.show()
+#plt.imshow(fragmento, cmap='gray')
+#plt.show()
 
 #Funcion para ecualizar localmente
 
