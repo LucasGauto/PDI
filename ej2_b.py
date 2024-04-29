@@ -134,5 +134,5 @@ def main(multiple_choice):
      ex_id = ex_id + 1
 
 
-m_choice=['PDI\multiple_choice_1.png','PDI\multiple_choice_2.png', 'PDI\multiple_choice_3.png', 'PDI\multiple_choice_4.png', 'PDI\multiple_choice_5.png']
+m_choice=['multiple_choice_1.png','multiple_choice_2.png', 'multiple_choice_3.png', 'multiple_choice_4.png', 'multiple_choice_5.png']
 main(m_choice)
