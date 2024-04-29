@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from acciones.funciones import corregir
+from acciones.funciones import corregir, adecuar
 
 # Funcion para obtener el renlgon de datos del examen --> devuelve la iamgen ya recortada
 def obtener_renglon_de_datos(examen):
@@ -149,7 +149,7 @@ def main(multiple_choice):
      #print(componentes)
      validar_caracteres(componentes)
      # Calcular el número de respuestas correctas
-     correccion_exam = corregir(examen)
+     correccion_exam = corregir(adecuar(examen))
      respuestas_correctas = sum(1 for estado in correccion_exam.values() if estado == 'OK')
      resultados.append((examen, respuestas_correctas))
      ex_id += 1
