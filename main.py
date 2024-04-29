@@ -7,3 +7,6 @@ from acciones import funciones
 #a)
 examen = funciones.adecuar('multiple_choice_1.png')
 print(funciones.corregir(examen))
+
+#plt.imshow(examen)
+#plt.show()

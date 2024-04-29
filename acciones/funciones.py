@@ -286,7 +286,8 @@ def adecuar(NombreImagen:str):
 
 def corregir(examen):
 
-    img = cv2.imread(examen, cv2.IMREAD_GRAYSCALE)
+    #img = cv2.imread(examen, cv2.IMREAD_GRAYSCALE)
+    img = examen
 
     respuestasCorrectas = {
         1: 'A',
