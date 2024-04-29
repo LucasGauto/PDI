@@ -17,10 +17,10 @@ def obtener_renglon_de_datos(examen):
         img_neg = umbralizada == 0  # True -> blanco, False --> negro
 
         # Verificar que umbralizada tenga los valores esperados
-        plt.imshow(umbralizada, cmap='gray')
-        plt.axis('off')
-        plt.title("Imagen umbralizada")
-        plt.show()
+        #plt.imshow(umbralizada, cmap='gray')
+        #plt.axis('off')
+        #plt.title("Imagen umbralizada")
+        #plt.show()
 
         img_row_zeros = img_neg.any(axis=1)
         x = np.diff(img_row_zeros)
@@ -111,27 +111,27 @@ def validar_caracteres(componentes):
 
     if val == "campo_1":
        if n_caracteres == 1:
-          print("CODE:OK")
+          return "CODE:OK"
        else:
-          print("CODE: MAL")  
+          return "CODE: MAL"
        
     if val == "campo_2" or val == "campo_0": 
        if n_caracteres == 8:
           if val == "campo_0": 
-            print("DATE:OK")
+            return "DATE:OK"
           else:
-            print("ID:OK")
+            return "ID:OK"
        else:
           if val == "campo_0": 
-            print("DATE:MAL")
+            return "DATE:MAL"
           else: 
-            print("ID: MAL")  
+            return "ID: MAL" 
 
     if val == "campo_3":
        if n_caracteres > 1 and  n_caracteres <= 25 and espacios == 1:
-          print("NAME:OK")
+          return "NAME:OK"
        else:
-          print("NAME: MAL")       
+          return "NAME: MAL"      
       
 def main(multiple_choice):
   '''Función para retornar el nombre del exámen y el número de respuestas correctas'''
@@ -160,4 +160,5 @@ def main(multiple_choice):
 m_choice=['PDI\multiple_choice_1.png','PDI\multiple_choice_2.png', 'PDI\multiple_choice_3.png', 'PDI\multiple_choice_4.png', 'PDI\multiple_choice_5.png']
 m_choice2=['multiple_choice_1.png','multiple_choice_2.png', 'multiple_choice_3.png', 'multiple_choice_4.png', 'multiple_choice_5.png']
 
+contador = 1
 main(m_choice2)

@@ -15,8 +15,9 @@ def generar_imagen_salida(resultados):
     '''Función para generar la imágen de salida'''
     # Crear una imagen en blanco para la salida
     height = len(resultados) * 60
-    width = 400
-    output_image = np.ones((height, width, 3), np.uint8) * 255
+    width = 600
+    #output_image = np.ones((height, width, 3), np.uint8) * 255
+    output_image = np.ones((height, width), np.uint8) * 255
 
     # Iterar sobre los resultados y generar los crops de los campos Name
     y = 20
