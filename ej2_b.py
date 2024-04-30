@@ -111,27 +111,27 @@ def validar_caracteres(componentes):
 
     if val == "campo_1":
        if n_caracteres == 1:
-          return "CODE:OK"
+          print("CODE:OK")
        else:
-          return "CODE: MAL"
+          print("CODE: MAL")
        
     if val == "campo_2" or val == "campo_0": 
        if n_caracteres == 8:
           if val == "campo_0": 
-            return "DATE:OK"
+            print("DATE:OK")
           else:
-            return "ID:OK"
+            print("ID:OK")
        else:
           if val == "campo_0": 
-            return "DATE:MAL"
+            print("DATE:MAL")
           else: 
-            return "ID: MAL" 
+            print("ID: MAL" )
 
     if val == "campo_3":
        if n_caracteres > 1 and  n_caracteres <= 25 and espacios == 1:
-          return "NAME:OK"
+          print("NAME:OK")
        else:
-          return "NAME: MAL"      
+          print("NAME: MAL" )
       
 def main(multiple_choice):
   '''Función para retornar el nombre del exámen y el número de respuestas correctas'''
