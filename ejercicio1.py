@@ -2,94 +2,51 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-'''
-def local_histogram_equalization_with_border(img, window_size):
-    h, w = img.shape
-    img_equalized = np.zeros((h, w), dtype=np.uint8)
-    half_size = window_size // 2
-
-    # Agregar un borde a la imagen para evitar problemas en los bordes
-    img_with_border = cv2.copyMakeBorder(img, half_size, half_size, half_size, half_size, cv2.BORDER_REPLICATE)
-
-    for i in range(h):
-        for j in range(w):
-            # Definir la región de interés (ROI) en la imagen con borde
-            roi = img_with_border[i:i + window_size, j:j + window_size]
-
-            # Ecualizar el histograma localmente
-            roi_equalized = cv2.equalizeHist(roi)
-
-            # Asignar el valor ecualizado al píxel central de la ventana en la imagen resultante
-            img_equalized[i, j] = roi_equalized[half_size, half_size]
-
-    return img_equalized
-
-# Cargar la imagen
-img = cv2.imread('imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
-
-# Tamaño de la ventana de procesamiento (puede ajustarse según sea necesario)
-window_size = 20
-
-# Aplicar la ecualización local del histograma con borde
-img_local_equalized_with_border = local_histogram_equalization_with_border(img, window_size)
-
-# Mostrar la imagen original y la imagen procesada
-plt.imshow(img)
-plt.imshow(img_local_equalized_with_border, cmap='gray')
-plt.show(block=False)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-'''
-
-#plt.style.use('default')
-#plt.style.use('dark_background')
-
 #Primero realizamos una carga y visualización de la imagen
 imagen = cv2.imread('Imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
-plt.imshow(imagen, cmap='gray')
-plt.show()
+#plt.imshow(imagen, cmap='gray')
+#plt.show()
 
 #Realizamos una prueba de ecualización de histograma de la imagen
 imagen_ecualizada= cv2.equalizeHist(imagen)
-plt.imshow(imagen_ecualizada, cmap='gray', vmin = 0, vmax=255)
-plt.show()
+#plt.imshow(imagen_ecualizada, cmap='gray', vmin = 0, vmax=255)
+#plt.show()
 
 #Histograma de la imagen
-fig, ax = plt.subplots(1,2,figsize=(12,6))
+#fig, ax = plt.subplots(1,2,figsize=(12,6))
 
-ax[0].hist(imagen.flatten(), 256, [0, 256])
-ax[0].set_title("Histograma original")
-ax[1].hist(imagen_ecualizada.flatten(), 256, [0,256])
-ax[1].set_title("Histograma ecualizado")
-plt.show()
+#ax[0].hist(imagen.flatten(), 256, [0, 256])
+#ax[0].set_title("Histograma original")
+#ax[1].hist(imagen_ecualizada.flatten(), 256, [0,256])
+#ax[1].set_title("Histograma ecualizado")
+#plt.show()
 
 #Imagenes con sus respectivos histogramas
 
-ax1 = plt.subplot(221)
-plt.imshow(imagen, cmap='gray', vmin=0, vmax=255)
-plt.title('Imagen Original')
+#ax1 = plt.subplot(221)
+#plt.imshow(imagen, cmap='gray', vmin=0, vmax=255)
+#plt.title('Imagen Original')
 
-ax2 = plt.subplot(222)
-plt.hist(imagen.flatten(), 255, [0,255])
-plt.title('Histograma')
+#ax2 = plt.subplot(222)
+#plt.hist(imagen.flatten(), 255, [0,255])
+#plt.title('Histograma')
 
-plt.subplot(223, sharex = ax1, sharey = ax1)
-plt.imshow(imagen_ecualizada, cmap='gray', vmin=0, vmax=255)
-plt.title('Imagen Ecualizada')
+#plt.subplot(223, sharex = ax1, sharey = ax1)
+#plt.imshow(imagen_ecualizada, cmap='gray', vmin=0, vmax=255)
+#plt.title('Imagen Ecualizada')
 
-plt.subplot(224, sharex=ax2, sharey=ax2)
-plt.hist(imagen_ecualizada.flatten(), 255, [0,255])
-plt.title('Histograma Ecualizado')
+#plt.subplot(224, sharex=ax2, sharey=ax2)
+#plt.hist(imagen_ecualizada.flatten(), 255, [0,255])
+#plt.title('Histograma Ecualizado')
 
-plt.show()
+#plt.show()
 
 
 #Dimensiones de la imagen
 #imagen[:20].shape
 
 #Ecualizacion de fragmento de la imagen
-fragmento = cv2.equalizeHist(imagen[:30,:30])
+#fragmento = cv2.equalizeHist(imagen[:30,:30])
 #plt.imshow(fragmento, cmap='gray')
 #plt.show()
 
@@ -126,4 +83,4 @@ window_size = 25
 imagen_ecualizada_localmente = local_histogram_equalization(imagen, window_size)
 
 plt.imshow(imagen_ecualizada_localmente, cmap = 'gray')
-plt.show(block=False)
+plt.show()

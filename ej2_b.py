@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from acciones.funciones import corregir, adecuar
 
 # Funcion para obtener el renlgon de datos del examen --> devuelve la iamgen ya recortada
 def obtener_renglon_de_datos(examen):
@@ -9,17 +10,30 @@ def obtener_renglon_de_datos(examen):
     """
     img = cv2.imread(examen, cv2.IMREAD_GRAYSCALE)
     umbral, umbralizada = cv2.threshold(img, 120, 255, cv2.THRESH_BINARY)
-    img_neg = umbralizada==0  #True -> blanco, False --> negro
-    
-    img_row_zeros = img_neg.any(axis=1)
-    x = np.diff(img_row_zeros) 
-    renglones_indxs = np.argwhere(x) # me devuelve donde empieza y termina el renglon, me interesa la pos 2 y 3
-    renglon_de_datos=[renglones_indxs[2], renglones_indxs[3]]
-    
-    # Genero imagen para pasar como argumento a la otra que analiza el texto
-    recorte_renglon = img[renglon_de_datos[0][0]:renglon_de_datos[1][0], :] 
-    
-    return recorte_renglon
+
+    # Verificar que umbral no sea None
+    if umbral is not None:
+        umbralizada = np.uint8(umbralizada)  # Convertir la imagen a tipo uint8
+        img_neg = umbralizada == 0  # True -> blanco, False --> negro
+
+        # Verificar que umbralizada tenga los valores esperados
+        #plt.imshow(umbralizada, cmap='gray')
+        #plt.axis('off')
+        #plt.title("Imagen umbralizada")
+        #plt.show()
+
+        img_row_zeros = img_neg.any(axis=1)
+        x = np.diff(img_row_zeros)
+        renglones_indxs = np.argwhere(x)  # me devuelve donde empieza y termina el renglon, me interesa la pos 2 y 3
+        renglon_de_datos = [renglones_indxs[2], renglones_indxs[3]]
+
+        # Genero imagen para pasar como argumento a la otra que analiza el texto
+        recorte_renglon = img[renglon_de_datos[0][0]:renglon_de_datos[1][0], :]
+
+        return recorte_renglon
+    else:
+        print("Error: Umbral es None")
+        return None
 
 def obtener_datos_de_campos(imagen):
     """ 
@@ -46,7 +60,7 @@ def obtener_datos_de_campos(imagen):
     indv_datos_del_examen=[]
     campos_a_retornar=imagen.copy()
     for x, y, w, h in campos:
-      indv_datos_del_examen.append(campos_a_retornar[y+3:y+h-3, x+3:x+w-3]) ## Agrego los recortes de los campos, el +3, -3 para descartar los borde
+      indv_datos_del_examen.append(campos_a_retornar[y+3:y+h-3, x+3:x+w-3]) # Agrego los recortes de los campos, el +3, -3 para descartar los borde
     
     return indv_datos_del_examen
 
@@ -99,7 +113,7 @@ def validar_caracteres(componentes):
        if n_caracteres == 1:
           print("CODE:OK")
        else:
-          print("CODE: MAL")  
+          print("CODE: MAL")
        
     if val == "campo_2" or val == "campo_0": 
        if n_caracteres == 8:
@@ -111,17 +125,20 @@ def validar_caracteres(componentes):
           if val == "campo_0": 
             print("DATE:MAL")
           else: 
-            print("ID: MAL")  
+            print("ID: MAL" )
 
     if val == "campo_3":
        if n_caracteres > 1 and  n_caracteres <= 25 and espacios == 1:
           print("NAME:OK")
        else:
-          print("NAME: MAL")       
+          print("NAME: MAL" )
       
 def main(multiple_choice):
-  lista_de_examenes=multiple_choice
-  ex_id = 0 
+  '''Función para retornar el nombre del exámen y el número de respuestas correctas'''
+  lista_de_examenes = multiple_choice
+  resultados = []  # Lista para almacenar los resultados de los exámenes
+  ex_id = 0
+
   for examen in lista_de_examenes:
      print(f"Examen: {ex_id}-{examen}")
      renglon = obtener_renglon_de_datos(examen)
@@ -131,8 +148,15 @@ def main(multiple_choice):
      componentes = contar_componentes(datos_de_los_campos)
      #print(componentes)
      validar_caracteres(componentes)
-     ex_id = ex_id + 1
+     # Calcular el número de respuestas correctas
+     correccion_exam = corregir(adecuar(examen))
+     respuestas_correctas = sum(1 for estado in correccion_exam.values() if estado == 'OK')
+     resultados.append((examen, respuestas_correctas))
+     ex_id += 1
+
+  return resultados
 
 
-m_choice=['multiple_choice_1.png','multiple_choice_2.png', 'multiple_choice_3.png', 'multiple_choice_4.png', 'multiple_choice_5.png']
-main(m_choice)
+m_choice=['PDI\multiple_choice_1.png','PDI\multiple_choice_2.png', 'PDI\multiple_choice_3.png', 'PDI\multiple_choice_4.png', 'PDI\multiple_choice_5.png']
+m_choice2=['multiple_choice_1.png','multiple_choice_2.png', 'multiple_choice_3.png', 'multiple_choice_4.png', 'multiple_choice_5.png']
+main(m_choice2)

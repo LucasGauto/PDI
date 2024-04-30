@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-def ecualizacionLocal(window_size = 25):
+def ecualizacionLocal(ruta,window_size = 25):
     '''
     Toma la ruta de una imagen y devuelve la misma imagen pero ecualizada localmente.
     '''
     #Primero realizamos una carga y visualización de la imagen
-    imagen = cv2.imread('Imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
+    imagen = cv2.imread(ruta, cv2.IMREAD_GRAYSCALE)
     
     #Funcion para ecualizar localmente
     def local_histogram_equalization(img, window_size):
@@ -46,6 +46,186 @@ def ecualizacionLocal(window_size = 25):
     #plt.imshow(imagen_ecualizada_localmente, cmap = 'gray')
     #plt.show(block=False)
     return imagen_ecualizada_localmente
+# Funcion para obtener el renlgon de datos del examen --> devuelve la iamgen ya recortada
+def obtener_renglon_de_datos(examen):
+    """
+    Devuelve la imagen del renglón de los campos a analizar
+    """
+    img = cv2.imread(examen, cv2.IMREAD_GRAYSCALE)
+    umbral, umbralizada = cv2.threshold(img, 120, 255, cv2.THRESH_BINARY)
+    img_neg = umbralizada==0  #True -> blanco, False --> negro
+
+    img_row_zeros = img_neg.any(axis=1)
+    x = np.diff(img_row_zeros)
+    renglones_indxs = np.argwhere(x)  # me devuelve donde empieza y termina el renglon, me interesa la pos 2 y 3
+    renglon_de_datos = [renglones_indxs[2], renglones_indxs[3]]
+    # Genero imagen para pasar como argumento a la otra que analiza el texto
+    recorte_renglon = img[renglon_de_datos[0][0]:renglon_de_datos[1][0], :]
+    return recorte_renglon
+
+def obtener_datos_de_campos(imagen):
+    """ 
+    Funcion que devuelve una lista con las imagenes de los campos completados
+    """
+    campos = imagen
+    
+    _, umbral = cv2.threshold(campos, 220, 255, cv2.THRESH_BINARY)
+    contornos, _ = cv2.findContours(umbral, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    campos = []
+
+    for c in contornos:
+        x, y, w, h = cv2.boundingRect(c) 
+        
+        if w > 77:
+          # chequeo que la posiscion de x no sea 569 porque coincide con el ancho del campo de codigo
+          if x == 569:
+            continue
+
+          campos.append((x, y, w, h))
+
+    # Genero imagenes para pasar como argumento a la otra que analiza los caracteres:
+    indv_datos_del_examen=[]
+    campos_a_retornar=imagen.copy()
+    for x, y, w, h in campos:
+      indv_datos_del_examen.append(campos_a_retornar[y+3:y+h-3, x+3:x+w-3]) # Agrego los recortes de los campos, el +3, -3 para descartar los borde
+    
+    return indv_datos_del_examen
+
+def contar_componentes(campos):
+    """
+    Función que cuenta los caracteres de mi imagen
+    """
+    componentes={}
+    con = 0
+    
+    for imagen in campos:
+      ret, thresh = cv2.threshold(imagen, 127, 255, 0)
+
+      #cv2 Componets detecta los blancos como porciones de componentes --> hay que invertir los bits 
+      img = cv2.bitwise_not(thresh)     
+      output = cv2.connectedComponentsWithStats(img)
+      caracteres = output[0]-1
+        
+      stats = output[2]
+      sort_index = np.argsort(stats[:, 0])
+      stats = stats[sort_index]
+      
+      # Descartar las componentes de ancho pequeño
+      for i in range(len(stats)):
+        if i >= 1:
+          anchura = stats[i][2]
+          if anchura <= 2:
+             caracteres = caracteres -1
+
+      espacios =  []
+      for i in range(len(stats)):
+        if i > 1: # para calcular la diferencia con el anterior
+          val_espacio = stats[i][0]-(stats[i-1][0]) # calculo la diferencia entre la cordenada x de mi componente siguiente y la anterior
+          if val_espacio > 9 and  i > 2: # > 2 Es para descartar el vector de mi primer componente. Porque las masyusculas tienden a ser mas anchas y no corresponden a espacios
+            espacios.append(val_espacio)  
+       
+      clave = f"campo_{con}"
+      componentes[clave] = (caracteres, len(espacios))
+      con = con + 1
+
+    return componentes
+
+def validar_caracteres(componentes):
+
+  for val, keys in componentes.items():
+    n_caracteres = keys[0]
+    espacios = keys[1]
+
+    if val == "campo_1":
+       if n_caracteres == 1:
+          print("CODE:OK")
+       else:
+          print("CODE: MAL")  
+       
+    if val == "campo_2" or val == "campo_0": 
+       if n_caracteres == 8:
+          if val == "campo_0": 
+            print("DATE:OK")
+          else:
+            print("ID:OK")
+       else:
+          if val == "campo_0": 
+            print("DATE:MAL")
+          else: 
+            print("ID: MAL")  
+
+    if val == "campo_3":
+       if n_caracteres > 1 and  n_caracteres <= 25 and espacios == 1:
+          print("NAME:OK")
+       else:
+          print("NAME: MAL")       
+   
+def obtener_campo_nombre(examen):
+    '''Función que evuelve los crop de los campos name'''
+    renglon = obtener_renglon_de_datos(examen)
+    # Como sé que el ultimo campo es el nombre, me quedo con ese
+    campos_datos = obtener_datos_de_campos(renglon)
+    name = campos_datos[3]
+    #plt.figure(), plt.imshow(renglon, cmap='gray'),  plt.show(block=True)
+    return name
+
+def generar_imagen_salida(resultados):
+    
+    '''Función para generar la imágen de salida'''
+    # Crear una imagen en blanco para la salida
+    height = len(resultados) * 60
+    width = 400
+    output_image = np.ones((height, width, 3), np.uint8) * 255
+
+    # Iterar sobre los resultados y generar los crops de los campos Name
+    y = 20
+    for examen, respuestas_correctas in resultados:
+        # Obtener el campo Name del examen
+        campo_name = obtener_campo_nombre(examen)
+        #plt.figure(), plt.imshow(campo_name, cmap='gray'),  plt.show(block=True)
+        h, w = campo_name.shape[:3]
+
+        # Dibujar el crop del campo Name en la imagen de salida
+        output_image[y:y+h, :w, 1] = campo_name
+        # Escribir el nombre del examen y el número de respuestas correctas
+        if respuestas_correctas >= 20:
+            text = f"Examen: APROBADO"
+        else:
+            text = f"Examen: DESAPROBADO"
+
+        cv2.putText(output_image, text, (w + 5, y + h // 2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+        y += h + 10
+
+    # Guardar la imagen de salida
+    cv2.imwrite('output_image.png', output_image)
+    plt.imshow(output_image)
+    plt.axis('off')
+    plt.show()
+
+def main(multiple_choice):
+  '''Función para retornar el nombre del exámen y el número de respuestas correctas'''
+  lista_de_examenes = multiple_choice
+  resultados = []  # Lista para almacenar los resultados de los exámenes
+  ex_id = 0
+
+  for examen in lista_de_examenes:
+     print(f"Examen: {ex_id}-{examen}")
+     renglon = obtener_renglon_de_datos(examen)
+     #plt.figure(), plt.imshow(renglon, cmap='gray'),  plt.show(block=True)
+     datos_de_los_campos = obtener_datos_de_campos(renglon)
+     #plt.figure(), plt.imshow(datos_de_los_campos[0], cmap='gray'),  plt.show(block=True)
+     componentes = contar_componentes(datos_de_los_campos)
+     #print(componentes)
+     validar_caracteres(componentes)
+     # Calcular el número de respuestas correctas
+     correccion_exam = corregir(adecuar(examen))
+     respuestas_correctas = sum(1 for estado in correccion_exam.values() if estado == 'OK')
+     resultados.append((examen, respuestas_correctas))
+     ex_id += 1
+
+  return resultados
 
 def adecuar(NombreImagen:str):
     '''
@@ -126,6 +306,9 @@ def adecuar(NombreImagen:str):
 
 def corregir(examen):
 
+    #img = cv2.imread(examen, cv2.IMREAD_GRAYSCALE)
+    img = examen
+
     respuestasCorrectas = {
         1: 'A',
         2: 'A',
@@ -165,7 +348,7 @@ def corregir(examen):
     for i in range(cantidad_preguntas):
         inicio = longitud_renglon * i + espacio_entre_renglones * i
         fin = inicio + 20
-        lista.append(examen[inicio:fin,:])
+        lista.append(img[inicio:fin,:])
 
     '''
     Las preguntas ya estan separadas.
@@ -219,3 +402,42 @@ def corregir(examen):
             correccion[f'Pregunta {i}'] = 'MAL'
 
     return correccion
+
+def contar_componentes(campos):
+    """
+    Función que cuenta los caracteres de mi imagen
+    """
+    componentes={}
+    con = 0
+    
+    for imagen in campos:
+      ret, thresh = cv2.threshold(imagen, 127, 255, 0)
+
+      #cv2 Componets detecta los blancos como porciones de componentes --> hay que invertir los bits 
+      img = cv2.bitwise_not(thresh)     
+      output = cv2.connectedComponentsWithStats(img)
+      caracteres = output[0]-1
+        
+      stats = output[2]
+      sort_index = np.argsort(stats[:, 0])
+      stats = stats[sort_index]
+      
+      # Descartar las componentes de ancho pequeño
+      for i in range(len(stats)):
+        if i >= 1:
+          anchura = stats[i][2]
+          if anchura <= 2:
+             caracteres = caracteres -1
+
+      espacios =  []
+      for i in range(len(stats)):
+        if i > 1: # para calcular la diferencia con el anterior
+          val_espacio = stats[i][0]-(stats[i-1][0]) # calculo la diferencia entre la cordenada x de mi componente siguiente y la anterior
+          if val_espacio > 9 and  i > 2: # > 2 Es para descartar el vector de mi primer componente. Porque las masyusculas tienden a ser mas anchas y no corresponden a espacios
+            espacios.append(val_espacio)  
+       
+      clave = f"campo_{con}"
+      componentes[clave] = (caracteres, len(espacios))
+      con = con + 1
+
+    return componentes

@@ -47,9 +47,9 @@ indicacionesEjercicio1 = Label(ej1Frame2, text='A continuación, seleccione la i
 botonSeleccionarArchivo = Button(ej1Frame2, text='Examinar', command=seleccionar_archivo)
 
 ej1Frame3 = Frame(ventana)
-imagen_pil = Image.fromarray(archivo_seleccionado)
-render = ImageTk.PhotoImage(imagen_pil)
-imagen = Label(ej1Frame3, image=render)
+#imagen_pil = Image.fromarray(archivo_seleccionado)
+#render = ImageTk.PhotoImage(imagen_pil)
+#imagen = Label(ej1Frame3, image=render)
 
 
 #Campos Ej2
@@ -127,7 +127,7 @@ def ejercicio1():
     indicacionesEjercicio1.grid(row=0, column=0, sticky='ew')
     botonSeleccionarArchivo.grid(row=1, column=0)
     
-    imagen.grid(row=0, column=0)
+    #imagen.grid(row=0, column=0)
     
     inicioFrame1.grid_remove()
     inicioFrame2.grid_remove()
